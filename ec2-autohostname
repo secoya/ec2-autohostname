@@ -1,0 +1,62 @@
+#!/bin/bash -e
+### BEGIN INIT INFO
+# Provides:	      ec2-autohostname
+# Required-Start: 
+# Required-Stop:  
+# Should-Start:   
+# Should-Stop:	  
+# Default-Start:  2 3 4 5
+# Default-Stop:   
+# Description:	Get the 'hostname' tag of this instance and set it as the hostname
+### END INIT INFO
+#
+# Based on http://stackoverflow.com/questions/5175554
+#
+
+prog=$(basename $0)
+logger="logger -t $prog"
+
+domain=aws.domain.com
+
+public_hostname=`/usr/bin/curl -s http://169.254.169.254/latest/meta-data/public-hostname`
+
+instance_information=`curl --silent http://169.254.169.254/latest/dynamic/instance-identity/document`
+instance_id=`echo "$instance_information" | grep instanceId | awk -F\" '{print $4}'`
+
+if [ -z "$instance_id" ]; then
+	logger "Unable to fetch the instance id." >&2
+	exit 1
+fi
+
+export AWS_ACCESS_KEY_ID='XXXXXXXXXXXXXXXXXXXX'
+export AWS_SECRET_ACCESS_KEY='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+
+hostname=`python <<EOF
+from pprint import pprint
+from boto import ec2
+
+ec2conn = ec2.connect_to_region('eu-west-1',aws_access_key_id='$AWS_ACCESS_KEY_ID',aws_secret_access_key='$AWS_SECRET_ACCESS_KEY')
+tags = ec2conn.get_all_instances(['$instance_id'])[0].instances[0].tags
+if 'hostname' in tags:
+	print(tags['hostname'])
+EOF`
+
+if [ -z "$hostname" ]; then
+	logger "hostname tag not set, skipping ec2-autohostname"
+	exit 0
+fi
+
+if [[ ! "$hostname" =~ ^[a-z][a-z0-9]+$ ]]; then
+logger "'$hostname' is not a valid hostname." >&2
+exit 1
+fi
+
+#set also the hostname to the running instance
+fqdn=$hostname.$domain
+hostname $fqdn
+
+# Update Route53 with a CNAME record pointing the hostname to the EC2 public DNS name
+# in this way it will resolve correctly to the private ip internally to ec2 and
+# the public ip externally
+result=`cli53 rrcreate $domain $hostname CNAME $public_hostname --ttl 60 --replace`
+logger "Created Route53 record with the result $result"

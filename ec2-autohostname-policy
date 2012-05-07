@@ -1,0 +1,38 @@
+{
+  "Statement": [
+    {
+      "Sid": "Stmt1336391332570",
+      "Action": [
+        "route53:ListHostedZones"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ]
+    },
+    {
+      "Sid": "Stmt1336391363321",
+      "Action": [
+        "route53:ChangeResourceRecordSets",
+        "route53:GetHostedZone",
+        "route53:ListResourceRecordSets"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "arn:aws:route53:::hostedzone/XXXXXXXXXXXXXX"
+      ]
+    },
+    {
+      "Sid": "Stmt1336403850396",
+      "Action": [
+        "ec2:DescribeInstances",
+        "ec2:DescribeRegions",
+        "ec2:DescribeTags"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ]
+    }
+  ]
+}
