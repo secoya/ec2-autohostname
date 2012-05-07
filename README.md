@@ -1,7 +1,7 @@
 ec2-autohostname
 =====================
 
-This startup script utilizes the _hostname_ tag of an ec2 instance
+This startup script utilizes the `hostname` tag of an ec2 instance
 to set its hostname and update the corresponding entry in Route 53.
 
 # Installation #
@@ -24,6 +24,7 @@ insserv -d ec2-autohostname
 The script depends on some python libraries namely:
 * boto
 * cli53
+
 Just run the following to install them.
 
 ```
@@ -34,17 +35,17 @@ tar -xvf cli53.tar.gz
 easy_install barnybug-cli53-99dd79e
 ```
 
-The easy_install part is neccessary because there seems to be a packaging problem with cli53.
+The easy_install part is neccessary because there seems to be a packaging issue with cli53.
 
 ## Bootstrapping ##
 An installation script when bootstrapping is included, the only neccessary environment variable needed is `$imagedir`.
-$imagedir should point to the root of the bootstrapped installation.
+`$imagedir` should point to the root of the bootstrapped installation.
 You can use it with [ec2debian-build-ami](https://github.com/andsens/ec2debian-build-ami) by specifying the `--script` parameter like so:
 ```
 ./ec2debian-build-ami --script ec2-autohostname/install-ec2-autohostname
 ```
 
 # Usage #
-Simply specify a tag named _hostname_ in your AWS EC2 interface containing the desired subdomain as a value.
+Simply specify a tag named `hostname` in your AWS EC2 interface containing the desired subdomain as a value.
 When the instance is started the hostname should automatically be updated.
 You can also update a running instance by simply running /etc/init.d/ec2-autohostname manually.
