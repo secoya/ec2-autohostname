@@ -7,8 +7,8 @@ to set its hostname and update the corresponding entry in Route 53.
 # Installation #
 ## Preparation ##
 You will need to modify the script a wee bit.
-* Set the `$domain` variable to your desired domain/subdomain
-* Create a user and a group for the purpose of updating the DNS. A restrictive group policy for that purpose can be found in ec2-authostname-policy
+* Set the `$domain` variable to your desired domain/subdomain.
+* Create a user and a group for the purpose of updating the DNS. A restrictive group policy for that purpose can be found in `ec2-authostname-policy`.
 * Adjust the hosted zone ID in the policy to match the ID of your Route 53 hosted zone domain/subdomain. The ID is found in the main overview of hosted zones.
 * Adjust the AWS credentials to match the newly created user. Namely `$AWS_ACCESS_KEY_ID` and `$AWS_SECRET_ACCESS_KEY`.
 
