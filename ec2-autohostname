@@ -47,8 +47,8 @@ if [ -z "$hostname" ]; then
 fi
 
 if [[ ! "$hostname" =~ ^[a-z][a-z0-9]+$ ]]; then
-logger "'$hostname' is not a valid hostname." >&2
-exit 1
+	logger "'$hostname' is not a valid hostname." >&2
+	exit 1
 fi
 
 #set also the hostname to the running instance
