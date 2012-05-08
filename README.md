@@ -28,8 +28,7 @@ The script depends on some python libraries namely:
 Just run the following to install them.
 
 ```
-apt-get install python-pip
-pip boto
+apt-get install python-boto
 curl -sL -o cli53.tar.gz https://github.com/barnybug/cli53/tarball/0.3.0
 tar -xvf cli53.tar.gz
 easy_install barnybug-cli53-99dd79e
