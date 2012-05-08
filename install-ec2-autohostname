@@ -4,8 +4,9 @@ scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 scriptname=ec2-autohostname
 
 export DEBIAN_FRONTEND=noninteractive
-chroot $imagedir apt-get install -y python-pip python-boto
+chroot $imagedir apt-get install -y python-pip
 unset DEBIAN_FRONTEND
+chroot $imagedir pip install boto
 chroot $imagedir curl -sL -o /root/cli53.tar.gz https://github.com/barnybug/cli53/tarball/0.3.0
 chroot $imagedir tar -C /root -xvf /root/cli53.tar.gz
 chroot $imagedir easy_install /root/barnybug-cli53-99dd79e
