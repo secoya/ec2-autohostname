@@ -13,10 +13,13 @@
 # Based on http://stackoverflow.com/questions/5175554
 #
 
+DOMAIN=aws.domain.com
+AWS_ACCESS_KEY_ID='XXXXXXXXXXXXXXXXXXXX'
+AWS_SECRET_ACCESS_KEY='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+REGION='XX-XXXX-#'
+
 prog=$(basename $0)
 logger="logger -t $prog"
-
-domain=aws.domain.com
 
 public_hostname=`/usr/bin/curl -s http://169.254.169.254/latest/meta-data/public-hostname`
 
@@ -27,10 +30,6 @@ if [ -z "$instance_id" ]; then
 	logger "Unable to fetch the instance id." >&2
 	exit 1
 fi
-
-AWS_ACCESS_KEY_ID='XXXXXXXXXXXXXXXXXXXX'
-AWS_SECRET_ACCESS_KEY='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-REGION='XX-XXXX-#'
 
 hostname=`python <<EOF
 from boto import ec2
@@ -51,11 +50,11 @@ if [[ ! "$hostname" =~ ^[a-z][a-z0-9]+$ ]]; then
 fi
 
 #set also the hostname to the running instance
-fqdn=$hostname.$domain
+fqdn=$hostname.$DOMAIN
 hostname $fqdn
 
 # Update Route53 with a CNAME record pointing the hostname to the EC2 public DNS name
 # in this way it will resolve correctly to the private ip internally to ec2 and
 # the public ip externally
-result=`/usr/local/bin/cli53 rrcreate $domain $hostname CNAME $public_hostname --ttl 60 --replace`
+result=`/usr/local/bin/cli53 rrcreate $DOMAIN $hostname CNAME $public_hostname --ttl 60 --replace`
 logger "Created Route53 record with the result $result"
