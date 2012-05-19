@@ -13,5 +13,5 @@ chroot $imagedir easy_install /root/barnybug-cli53-99dd79e
 chroot $imagedir rm -rf '/root/cli53.tar.gz' '/root/barnybug-cli53-99dd79e'
 
 cp $scriptdir/$scriptname $imagedir/etc/init.d/$scriptname
-chmod 755 $imagedir/etc/init.d/$scriptname
+chmod 700 $imagedir/etc/init.d/$scriptname
 chroot $imagedir insserv -d $scriptname

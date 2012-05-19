@@ -17,7 +17,7 @@ You will need to modify the script a wee bit.
 
 ```
 cp ec2-autohostname /etc/init.d/ec2-autohostname
-chmod 755 /etc/init.d/ec2-autohostname
+chmod 700 /etc/init.d/ec2-autohostname
 insserv -d ec2-autohostname
 ```
 
