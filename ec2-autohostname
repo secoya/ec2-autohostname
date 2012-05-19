@@ -33,9 +33,7 @@ AWS_SECRET_ACCESS_KEY='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 REGION='XX-XXXX-#'
 
 hostname=`python <<EOF
-from pprint import pprint
 from boto import ec2
-
 ec2conn = ec2.connect_to_region('$REGION',aws_access_key_id='$AWS_ACCESS_KEY_ID',aws_secret_access_key='$AWS_SECRET_ACCESS_KEY')
 tags = ec2conn.get_all_instances(['$instance_id'])[0].instances[0].tags
 if 'hostname' in tags:
