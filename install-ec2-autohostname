@@ -2,6 +2,21 @@
 
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 scriptname=ec2-autohostname
+settingsfile=$scriptdir/settings
+
+if [ ! -e $settingsfile ]; then
+	echo "$settingsfile does not exist!" >&2
+	echo "copy '$settingsfile.template' to '$settingsfile' and edit it." >&2
+	exit 1
+fi
+source $settingsfile
+
+cp -f $scriptdir/$scriptname $scriptdir/$scriptname-custom
+sed -i "s@DOMAIN='aws.domain.com'@DOMAIN='$DOMAIN'@" $scriptdir/$scriptname-custom
+sed -i "s@AWS_ACCESS_KEY_ID='X\{20\}'@AWS_ACCESS_KEY_ID='$AWS_ACCESS_KEY_ID'@" $scriptdir/$scriptname-custom
+sed -i "s@AWS_SECRET_ACCESS_KEY='X\{40\}'@AWS_SECRET_ACCESS_KEY='$AWS_SECRET_ACCESS_KEY'@" $scriptdir/$scriptname-custom
+sed -i "s@REGION='XX-XXXX-#'@REGION='$REGION'@" $scriptdir/$scriptname-custom
+
 
 # If we are not bootstrapping, simply install it on the host
 if [ -z $imagedir ]; then
@@ -17,6 +32,6 @@ chroot $imagedir tar -C /root -xvf /root/cli53.tar.gz
 chroot $imagedir easy_install /root/barnybug-cli53-99dd79e
 chroot $imagedir rm -rf '/root/cli53.tar.gz' '/root/barnybug-cli53-99dd79e'
 
-cp $scriptdir/$scriptname $imagedir/etc/init.d/$scriptname
+cp $scriptdir/$scriptname-custom $imagedir/etc/init.d/$scriptname
 chmod 700 $imagedir/etc/init.d/$scriptname
 chroot $imagedir insserv -d $scriptname
