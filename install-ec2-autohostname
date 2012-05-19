@@ -3,6 +3,11 @@
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 scriptname=ec2-autohostname
 
+# If we are not bootstrapping, simply install it on the host
+if [ -z $imagedir ]; then
+	imagedir='/'
+fi
+
 export DEBIAN_FRONTEND=noninteractive
 chroot $imagedir apt-get install -y python-pip
 unset DEBIAN_FRONTEND
