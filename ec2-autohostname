@@ -13,9 +13,9 @@
 # Based on http://stackoverflow.com/questions/5175554
 #
 
+export AWS_ACCESS_KEY_ID='XXXXXXXXXXXXXXXXXXXX'
+export AWS_SECRET_ACCESS_KEY='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 DOMAIN='aws.domain.com'
-AWS_ACCESS_KEY_ID='XXXXXXXXXXXXXXXXXXXX'
-AWS_SECRET_ACCESS_KEY='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 REGION='XX-XXXX-#'
 
 prog=$(basename $0)
@@ -36,7 +36,7 @@ from boto import ec2
 ec2conn = ec2.connect_to_region('$REGION',aws_access_key_id='$AWS_ACCESS_KEY_ID',aws_secret_access_key='$AWS_SECRET_ACCESS_KEY')
 tags = ec2conn.get_all_instances(['$instance_id'])[0].instances[0].tags
 if 'hostname' in tags:
-	print(tags['hostname'])
+    print(tags['hostname'])
 EOF`
 
 if [ -z "$hostname" ]; then
