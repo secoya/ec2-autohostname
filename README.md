@@ -11,6 +11,7 @@ You will need to modify the script a wee bit.
 * Create a user and a group for the purpose of updating the DNS. A restrictive group policy for that purpose can be found in `ec2-authostname-policy`.
 * Adjust the hosted zone ID in the policy to match the ID of your Route 53 hosted zone domain/subdomain. The ID is found in the main overview of hosted zones.
 * Adjust the AWS credentials to match the newly created user. Namely `$AWS_ACCESS_KEY_ID` and `$AWS_SECRET_ACCESS_KEY`.
+* Adjust the regions identifier to match the location of your instance/AMI. It is located just below the AWS credentials.
 
 ## Manual setup ##
 
