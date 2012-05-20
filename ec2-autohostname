@@ -1,60 +1,118 @@
-#!/bin/bash -e
+#!/usr/bin/python
 ### BEGIN INIT INFO
 # Provides:	      ec2-autohostname
-# Required-Start: 
-# Required-Stop:  
-# Should-Start:   
-# Should-Stop:	  
+# Required-Start: $local_fs $network
+# Required-Stop:  sendsigs $local_fs $network
+# Should-Start:
+# Should-Stop:
 # Default-Start:  2 3 4 5
-# Default-Stop:   
+# Default-Stop:   0 6
 # Description:	Get the 'hostname' tag of this instance and set it as the hostname
 ### END INIT INFO
 #
-# Based on http://stackoverflow.com/questions/5175554
+# Based on http://stackoverflow.com/questions/5175554, but modified _a lot_ since then
 #
+aws_access_key_id = 'XXXXXXXXXXXXXXXXXXXX'
+aws_secret_access_key = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+zone_id = 'XXXXXXXXXXXXXX'
 
-export AWS_ACCESS_KEY_ID='XXXXXXXXXXXXXXXXXXXX'
-export AWS_SECRET_ACCESS_KEY='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-DOMAIN='aws.domain.com'
-REGION='XX-XXXX-#'
-
-prog=$(basename $0)
-logger="logger -t $prog"
-
-public_hostname=`/usr/bin/curl -s http://169.254.169.254/latest/meta-data/public-hostname`
-
-instance_information=`curl --silent http://169.254.169.254/latest/dynamic/instance-identity/document`
-instance_id=`echo "$instance_information" | grep instanceId | awk -F\" '{print $4}'`
-
-if [ -z "$instance_id" ]; then
-	logger "Unable to fetch the instance id." >&2
-	exit 1
-fi
-
-hostname=`python <<EOF
+import sys
+import re
 from boto import ec2
-ec2conn = ec2.connect_to_region('$REGION',aws_access_key_id='$AWS_ACCESS_KEY_ID',aws_secret_access_key='$AWS_SECRET_ACCESS_KEY')
-tags = ec2conn.get_all_instances(['$instance_id'])[0].instances[0].tags
-if 'hostname' in tags:
-    print(tags['hostname'])
-EOF`
+from boto import connect_route53
+from boto.route53.record import ResourceRecordSets
+from boto.route53.exception import DNSServerError
+from boto.exception import EC2ResponseError
+import urllib2
+import json
+import subprocess
 
-if [ -z "$hostname" ]; then
-	logger "hostname tag not set, skipping ec2-autohostname"
-	exit 0
-fi
+public_hostname = urllib2.urlopen('http://169.254.169.254/latest/meta-data/public-hostname').read()
 
-if [[ ! "$hostname" =~ ^[a-z][a-z0-9]+$ ]]; then
-	logger "'$hostname' is not a valid hostname." >&2
-	exit 1
-fi
+instance_info = json.loads(urllib2.urlopen('http://169.254.169.254/latest/dynamic/instance-identity/document').read())
+instance_id = instance_info['instanceId']
+region = instance_info['region']
+route53conn = connect_route53(aws_access_key_id, aws_secret_access_key)
 
-#set also the hostname to the running instance
-fqdn=$hostname.$DOMAIN
-hostname $fqdn
+try:
+	ec2conn = ec2.connect_to_region(region, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+	tags = ec2conn.get_all_instances([instance_id])[0].instances[0].tags
+except EC2ResponseError:
+	print "There was an error connecting to ec2"
+	exit(0)
 
-# Update Route53 with a CNAME record pointing the hostname to the EC2 public DNS name
-# in this way it will resolve correctly to the private ip internally to ec2 and
-# the public ip externally
-result=`/usr/local/bin/cli53 rrcreate $DOMAIN $hostname CNAME $public_hostname --ttl 60 --replace`
-logger "Created Route53 record with the result $result"
+if 'hostname' not in tags:
+	print "hostname tag not set, skipping ec2-autohostname"
+	exit(0)
+
+hostname = tags['hostname']
+valid_hostname = re.compile(r'^[a-z\d]+([-_][a-z\d]+)*$', re.IGNORECASE)
+if not valid_hostname.match(hostname):
+	print "hostname '" + hostname + "' is not a valid hostname"
+	exit(0)
+
+info = route53conn.get_hosted_zone(zone_id)
+fqdn = hostname + '.' + info.Name
+
+
+def info():
+	print "Usage: /etc/init.d/ec2-autohostname {start|stop|status}."
+	exit(0)
+
+
+def status():
+	records = route53conn.get_all_rrsets(zone_id)
+	print "The configured hostname '" + hostname + "' currently points at:"
+	for record in records:
+		if record.type == 'CNAME' and record.name == fqdn:
+			if record.resource_records[0] == public_hostname:
+				print record.resource_records[0] + " (this instance)"
+			else:
+				print record.resource_records[0]
+			break
+	print "Following records point to the current instance:"
+	for record in records:
+		if record.type == 'CNAME' and record.resource_records[0] == public_hostname:
+			print record.name[:-1]
+	return
+
+
+def start():
+	try:
+		changes = ResourceRecordSets(route53conn, zone_id)
+		change = changes.add_change('CREATE', fqdn, 'CNAME', 60)
+		change.add_value(public_hostname)
+		changes.commit()
+		
+		subprocess.call(['hostname', fqdn[:-1]])
+	except DNSServerError:
+		print "Could not create '" + fqdn[:-1] + "', is the record already mapped?"
+		print "Run '/etc/init.d/ec2-autohostname status' to see which records are mapped."
+	return
+
+
+def stop():
+	try:
+		changes = ResourceRecordSets(route53conn, zone_id)
+		change = changes.add_change('DELETE', fqdn, 'CNAME', 60)
+		change.add_value(public_hostname)
+		changes.commit()
+	except DNSServerError:
+		print "Could not delete '" + fqdn[:-1] + "', is the record mapped to the current instance?"
+		print "Run '/etc/init.d/ec2-autohostname status' to see which records are mapped."
+	return
+
+commands = {
+	'info': info,
+	'status': status,
+	'start': start,
+	'stop': stop
+}
+
+if len(sys.argv) == 1:
+	info()
+
+if sys.argv[1] not in commands:
+	info()
+	
+commands[sys.argv[1]]()
