@@ -1,13 +1,13 @@
 #!/usr/bin/python
 ### BEGIN INIT INFO
-# Provides:	      ec2-autohostname
+# Provides:       ec2-autohostname
 # Required-Start: $local_fs $network
 # Required-Stop:  sendsigs $local_fs $network
-# Should-Start:
-# Should-Stop:
+# Should-Start:   
+# Should-Stop:    
 # Default-Start:  2 3 4 5
 # Default-Stop:   0 6
-# Description:	Get the 'hostname' tag of this instance and set it as the hostname
+# Description:    Get the 'hostname' tag of this instance and set it as the hostname
 ### END INIT INFO
 #
 # Based on http://stackoverflow.com/questions/5175554, but modified _a lot_ since then
