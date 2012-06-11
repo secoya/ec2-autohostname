@@ -7,7 +7,7 @@ function ec2_autohostname {
 	fi
 	
 	packages+=('python-pip')
-	insert_task_after $TASK_BOOTSTRAP "$plugindir/tasks/install-boto"
+	insert_task_after $TASK_MOUNT "$plugindir/tasks/install-boto"
 	init_scripts+=("$scriptpath")
 	insert_task_after $TASK_INITSCRIPTS "$plugindir/tasks/chmod-script"
 }
