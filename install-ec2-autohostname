@@ -1,32 +1,15 @@
 #!/bin/bash -e
 
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-scriptname=ec2-autohostname
-settingsfile=$scriptdir/settings
-
-if [ ! -e $settingsfile ]; then
-	echo "$settingsfile does not exist!" >&2
-	echo "copy '$settingsfile.template' to '$settingsfile' and edit it." >&2
-	exit 1
-fi
-source $settingsfile
-
-cp -f $scriptdir/$scriptname $scriptdir/$scriptname-custom
-sed -i "s@'X\{20\}'@'$AWS_ACCESS_KEY_ID'@" $scriptdir/$scriptname-custom
-sed -i "s@'X\{40\}'@'$AWS_SECRET_ACCESS_KEY'@" $scriptdir/$scriptname-custom
-sed -i "s@'X\{14\}'@'$ZONE'@" $scriptdir/$scriptname-custom
-
-
-# If we are not bootstrapping, simply install it on the host
-if [ -z $imagedir ]; then
-	imagedir='/'
+scriptpath="$scriptdir/ec2-autohostname"
+if [ ! -e $scriptpath ]; then
+	die "$scriptpath does not exist!" \
+	    "copy '$scriptpath.template' to '$scriptpath' and edit it."
 fi
 
-export DEBIAN_FRONTEND=noninteractive
-chroot $imagedir apt-get install -y python-pip
-unset DEBIAN_FRONTEND
-chroot $imagedir pip install boto
+apt-get install -y python-pip
+pip install boto
 
-cp $scriptdir/$scriptname-custom $imagedir/etc/init.d/$scriptname
-chmod 700 $imagedir/etc/init.d/$scriptname
-chroot $imagedir insserv -d $scriptname
+cp $scriptpath /etc/init.d/$scriptname
+chmod 700 /etc/init.d/$scriptname
+insserv -d $scriptname

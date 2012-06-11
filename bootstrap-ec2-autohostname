@@ -1,0 +1,15 @@
+#!/bin/bash
+function ec2_autohostname {
+	local scriptpath="$plugindir/ec2-autohostname"
+	if [ ! -e $scriptpath ]; then
+		die "$scriptpath does not exist!" \
+		    "copy '$scriptpath.template' to '$scriptpath' and edit it."
+	fi
+	
+	packages+=('python-pip')
+	insert_task_after $TASK_BOOTSTRAP "$plugindir/install-boto"
+	init_scripts+=("$scriptpath")
+	insert_task_after $TASK_INITSCRIPTS "$plugindir/chmod-script"
+}
+
+ec2_autohostname
