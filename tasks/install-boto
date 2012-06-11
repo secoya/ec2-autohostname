@@ -1,2 +1,2 @@
 #!/bin/bash
-chroot $imagedir pip install boto
+chroot $imagedir pip install boto | spin
