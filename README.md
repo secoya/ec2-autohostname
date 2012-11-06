@@ -6,14 +6,13 @@ to set its hostname and update the corresponding entry in Route 53.
 
 # Installation #
 ## Preparation ##
-* Create a user and a group for the purpose of updating the DNS. A restrictive group policy for that purpose can be found in `ec2-authostname.policy`.
-* Adjust the hosted zone ID in the policy to match the ID of your Route 53 hosted zone domain/subdomain. The ID is found in the main overview of hosted zones.
+1. Create a user and a group for the purpose of updating the DNS. A restrictive group policy for that purpose can be found in `ec2-authostname.policy`.
+2. Adjust the hosted zone ID in the policy to match the ID of your Route 53 hosted zone domain/subdomain. The ID is found in the main overview of hosted zones.
+3. ``ec2-autohostname.template`` holds three parameters that can (and must!) be customized. Don't modify the file directly, copy it to ``ec2-autohostname`` and edit that file.
+4. Adjust the `aws_access_key_id` and `aws_secret_access_key` to match the newly created user.
+5. Adjust the `zone_id` variable to match the zone ID you retrieved in the second preparation step.
 
-``ec2-autohostname.template`` holds three parameters that can (and must!) be customized. Don't modify the file directly, copy it to ``ec2-autohostname`` and edit that file.
-* Adjust the `aws_access_key_id` and `aws_secret_access_key` to match the newly created user.
-* Adjust the `zone_id` variable to match the zone ID you retrieved in the preparation step.
-
-All the variables in the script are marked with Xs.
+*All the variables in the script are marked with Xs.*
 
 ## Using the install script ##
 The install script works for debian squeeze only!
@@ -33,7 +32,7 @@ insserv -d ec2-autohostname
 ```
 
 ### Dependencies ###
-The script depends the `boto` python library.
+The script depends on the `boto` python library.
 The library in the debian package repository does not support Route 53, so you will need to install it via pip:
 ```
 apt-get install -y python-pip
